@@ -340,10 +340,7 @@ namespace Ioss {
         }
 #endif
         // Shyamali : To sort the ranks from communicator
-        std::vector<int> procs(util().parallel_size());
-        // Now sort by increasing processor number.
-        std::sort(procs.begin(), procs.end());
-        if (myProcessor == procs[0]) {
+        if (myProcessor == 0) {
 
           int dwret = dw_wait_file_stage(bb_file.filename().c_str());
           if (dwret < 0) {
@@ -352,6 +349,20 @@ namespace Ioss {
                        bb_file.filename(), std::strerror(-dwret));
             IOSS_ERROR(errmsg);
           }
+          int complete = 0, pending = 0, deferred = 0, failed = 0;
+          dw_query_file_stage(bb_file.filename().c_str(), &complete, &pending, &deferred, &failed);
+         if (!failed && pending == 0 && !deferred) {
+	    int success = std::remove(bb_file.filename().c_str());
+	    if(success == 0){
+            	std::ostringstream errmsg;
+	    	FILE *fp  = NULL;
+  	    	if ((fp = fopen(bb_file.filename().c_str(), "rw")) == NULL){
+            		fmt::print(errmsg, "ERROR: failed re-opening existing file inside Burst Buffer `{}`: {}\n",
+                       	     bb_file.filename(), std::strerror(-1));
+			IOSS_ERROR(errmsg);
+		}
+	    }
+	  }	
 	}
 	util().barrier();
 #else
@@ -378,11 +389,8 @@ namespace Ioss {
       }
 
       // Shyamali : To sort the ranks from communicator
-      std::vector<int> procs(util().parallel_size());
-      // Now sort by increasing processor number.
-      std::sort(procs.begin(), procs.end());
 
-      if (!using_parallel_io() || (using_parallel_io() && myProcessor == procs[0])) {
+      if (!using_parallel_io() || (using_parallel_io() && myProcessor == 0)) {
 #if defined SEACAS_HAVE_DATAWARP
         int complete = 0, pending = 0, deferred = 0, failed = 0;
         dw_query_file_stage(get_dwname().c_str(), &complete, &pending, &deferred, &failed);
