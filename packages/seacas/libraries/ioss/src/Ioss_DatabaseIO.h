@@ -360,6 +360,15 @@ namespace Ioss {
     void                            add_information_records(const std::vector<std::string> &info);
     void                            add_information_record(const std::string &info);
 
+    /* Shyamali: Add the DeleteQ methods here */
+
+    void addStepfileToDeleteq(const  std::string fname);
+    void add_backfile_CurrentPos(const std::string fname);
+    const std::string &getnextFile();
+    void  deleteOldTimestepFiles();
+
+    /* Shyamali end of FIFO deleteQ methods */
+
     // QA Records:
 
     /** \brief Get all QA records, each of which consists of 4 strings, from the database
@@ -687,6 +696,20 @@ namespace Ioss {
 
     std::vector<std::string> informationRecords;
     std::vector<std::string> qaRecords;
+
+    // Assume we are doing 'file_per_state' or 'split_times'
+    // at file creation call:
+    // check each file in 'delete_file_queue' 
+    // to see if stage out has finished.
+    // if finished, then delete the file and remove from queue, check next file
+    // if not finished, then go to next file
+    
+    // at file close time.
+    // tell DW to stage the file out
+    // push the filename to the end of the 'delete_file_queue'
+    // List of files to be deleted from last timesteps
+ 
+    std::vector<std::string> stagedoutFilesDeleteq;
 
     //---Node Map -- Maps internal (1..NUMNP) ids to global ids used on the
     //               application side.   global = nodeMap[local]

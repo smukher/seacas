@@ -315,6 +315,34 @@ namespace Ioss {
     }
   }
 
+/* Shyamali: Add the methods realting BB's  previously delete fileis Q here */
+
+    void addStepfileToDeleteq(const  std::string fname){
+        stagedoutFilesDeleteq.push_back(fname);
+    }
+
+    void add_backfile_CurrentPos(const std::string fname){
+        stagedoutFilesDeleteq.insert(stagedoutFilesDeleteq.at(),f name);
+    }
+
+   const std::string &getnextFile(){
+        return *stagedoutFilesDeleteq.front();
+   }
+
+  /* get every entry from deleteQ and see if staging done, if so erase, else leave it from next time */
+ 
+    void deleteOldTimestepFiles(){ 
+        for(int i=0;  i < stagedoutFilesDeleteq.size(); i++){
+                std::string fname = stagedoutFilesDeleteq(i);
+                int complete = 0, pending = 0, deferred = 0, failed = 0;
+                dw_query_file_stage(bb_file.filename().c_str(), &complete, &pending, &deferred, &failed);
+                if (!failed && pending == 0 && !deferred) {
+                        stagedoutFilesDeleteq.erase(i);
+                }
+          }
+        
+    }
+
   /**
    * In this wrapper function we check if user intends to use Cray
    * DataWarp(aka DW), which provides ability to use NVMe based flash
@@ -352,16 +380,15 @@ namespace Ioss {
           int complete = 0, pending = 0, deferred = 0, failed = 0;
           dw_query_file_stage(bb_file.filename().c_str(), &complete, &pending, &deferred, &failed);
          if (!failed && pending == 0 && !deferred) {
-	    int success = std::remove(bb_file.filename().c_str());
-	    if(success == 0){
             	std::ostringstream errmsg;
 	    	FILE *fp  = NULL;
-  	    	if ((fp = fopen(bb_file.filename().c_str(), "rw")) == NULL){
+		/* Shyamali Opening with "w+" will make it TRUNC */
+
+  	    	if ((fp = fopen(bb_file.filename().c_str(), "rw+")) == NULL){
             		fmt::print(errmsg, "ERROR: failed re-opening existing file inside Burst Buffer `{}`: {}\n",
                        	     bb_file.filename(), std::strerror(-1));
 			IOSS_ERROR(errmsg);
 		}
-	    }
 	  }	
 	}
 	util().barrier();
@@ -371,6 +398,7 @@ namespace Ioss {
 #endif
       }
       set_dwname(bb_file.filename());
+      deleteOldTimestepFiles();
     }
     else {
       set_dwname(filename);
@@ -388,7 +416,7 @@ namespace Ioss {
         util().barrier();
       }
 
-      // Shyamali : To sort the ranks from communicator
+      // Shyamali : Added barrier at front to force all ranks to close
 
       if (!using_parallel_io() || (using_parallel_io() && myProcessor == 0)) {
 #if defined SEACAS_HAVE_DATAWARP
@@ -430,6 +458,7 @@ namespace Ioss {
                      get_dwname(), get_pfsname(), std::strerror(-ret));
           IOSS_ERROR(errmsg);
         }
+	add_lasttimestep_file(get_dwname());
 #else
       fmt::print(Ioss::DEBUG(), "\nDW: (FAKE) dw_stage_file_out({}, {}, DW_STAGE_IMMEDIATE);\n",
                  get_dwname(), get_pfsname());
