@@ -363,8 +363,6 @@ namespace Ioss {
     /* Shyamali: Add the DeleteQ methods here */
 
     void addStepfileToDeleteq(const  std::string fname);
-    void add_backfile_CurrentPos(const std::string fname);
-    const std::string &getnextFile();
     void  deleteOldTimestepFiles();
 
     /* Shyamali end of FIFO deleteQ methods */
@@ -550,6 +548,7 @@ namespace Ioss {
     int  parallel_size() const { return util().parallel_size(); }
     bool is_parallel() const { return isParallel; }
 
+
     void progress(const std::string &output) const
     {
       if (m_enableTracing) {
@@ -709,7 +708,7 @@ namespace Ioss {
     // push the filename to the end of the 'delete_file_queue'
     // List of files to be deleted from last timesteps
  
-    std::vector<std::string> stagedoutFilesDeleteq;
+    std::vector<std::string>  stagedoutFilesDeleteq;
 
     //---Node Map -- Maps internal (1..NUMNP) ids to global ids used on the
     //               application side.   global = nodeMap[local]

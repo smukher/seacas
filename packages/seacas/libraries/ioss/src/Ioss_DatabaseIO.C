@@ -317,25 +317,18 @@ namespace Ioss {
 
 /* Shyamali: Add the methods realting BB's  previously delete fileis Q here */
 
-    void addStepfileToDeleteq(const  std::string fname){
+    void DatabaseIO::addStepfileToDeleteq(const  std::string fname){
         stagedoutFilesDeleteq.push_back(fname);
     }
 
-    void add_backfile_CurrentPos(const std::string fname){
-        stagedoutFilesDeleteq.insert(stagedoutFilesDeleteq.at(),f name);
-    }
-
-   const std::string &getnextFile(){
-        return *stagedoutFilesDeleteq.front();
-   }
-
   /* get every entry from deleteQ and see if staging done, if so erase, else leave it from next time */
  
-    void deleteOldTimestepFiles(){ 
-        for(int i=0;  i < stagedoutFilesDeleteq.size(); i++){
-                std::string fname = stagedoutFilesDeleteq(i);
+    void DatabaseIO::deleteOldTimestepFiles(){
+
+	for(std::vector<std::string>::const_iterator i = stagedoutFilesDeleteq.begin(); i != stagedoutFilesDeleteq.end(); ++i) {
+	 	std::string fname = *i;
                 int complete = 0, pending = 0, deferred = 0, failed = 0;
-                dw_query_file_stage(bb_file.filename().c_str(), &complete, &pending, &deferred, &failed);
+                dw_query_file_stage(fname.c_str(), &complete, &pending, &deferred, &failed);
                 if (!failed && pending == 0 && !deferred) {
                         stagedoutFilesDeleteq.erase(i);
                 }
@@ -458,7 +451,7 @@ namespace Ioss {
                      get_dwname(), get_pfsname(), std::strerror(-ret));
           IOSS_ERROR(errmsg);
         }
-	add_lasttimestep_file(get_dwname());
+	addStepfileToDeleteq(get_dwname());
 #else
       fmt::print(Ioss::DEBUG(), "\nDW: (FAKE) dw_stage_file_out({}, {}, DW_STAGE_IMMEDIATE);\n",
                  get_dwname(), get_pfsname());
