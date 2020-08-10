@@ -362,8 +362,7 @@ namespace Ioss {
 
     /* Shyamali: Add the DeleteQ methods here */
 
-    void addStepfileToDeleteq(const  std::string fname);
-    void  deleteOldTimestepFiles();
+    void  deleteOldTimestepFiles() const;
 
     /* Shyamali end of FIFO deleteQ methods */
 
