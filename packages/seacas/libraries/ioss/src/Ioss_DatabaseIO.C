@@ -322,9 +322,9 @@ namespace Ioss {
     {
 	int complete = 0, pending = 0, deferred = 0, failed = 0;
 
-	auto i = std::begin(stageoutFilesDeleteq);
+	auto i = stageoutFilesDeleteq.begin();
 
-	while (i != std::end(stageoutFilesDeleteq)) {
+	while (i != stageoutFilesDeleteq.end()) {
 	 	std::string fname = *i;
                 dw_query_file_stage(fname.c_str(), &complete, &pending, &deferred, &failed);
                 if (!failed && pending == 0 && !deferred) {
